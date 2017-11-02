@@ -1,0 +1,80 @@
+#	Makefile.in for ild_suit
+#	Copyright(c) Osamu Gotoh <<o.gotoh@asit.go.jp>>
+
+exec_prefix = ../bin
+CXX  = g++
+CFLAGS = -O3
+RANLIB = ranlib
+LD  = g++
+AR = ar ru
+DEL = rm -f
+
+CXX := $(CXX) $(CFLAGS)
+
+.SUFFIXES: .o .c .cc .h .sh
+
+PROG = fitild compild decompild plotild
+
+STDH = stdtype.h
+CLIB = clib.a
+
+.c.o:
+	$(CXX) -c $<
+.cc.o:
+	$(CXX) -c $<
+
+.c:
+	$(CXX) -o $@ $< $(CLIB)
+
+all: $(PROG) 
+
+clean:
+	$(DEL) $(PROG) *.exe
+clear:
+	$(DEL) $(PROG) *.exe *.o *.a
+clearall:
+	$(DEL) $(PROG) core *.o *.a *.exe *% *BAK Makefile iolib.h
+
+tar:
+	$(DEL) *.o *.a *% *BAK *~ Makefile iolib.h $(PROG)
+	cd .. ; \
+	Cur=`pwd` ; \
+	Pnm=`basename $$Cur` ; \
+	cd .. ; \
+	tar cvf Sources.tar $$Pnm
+
+install:
+	test -d $(exec_prefix) || mkdir -p $(exec_prefix)
+	cp $(PROG) $(exec_prefix)
+	test -d $(table_dir) || mkdir -p $(table_dir)
+	@if test "$(table_dir)" != "$(CURDIR)/../table"; then \
+		cp -pfR ../table/* $(table_dir); \
+	fi
+
+uninstall uninst:
+	cd $(exec_prefix); rm -f $(PROG)
+	cd $(table_dir); cd ..; rm -fr $(table_dir)
+
+
+compild: compild.c calcserv.h ildpdf.o $(CLIB)
+	$(CXX) -o compild compild.c ildpdf.o $(CLIB) -lm -lgsl -lgslcblas
+decompild: decompild.o ildpdf.o fitild.o $(CLIB)
+	$(CXX) -o decompild decompild.o ildpdf.o fitild.o $(CLIB) -lgsl -lgslcblas
+fitild: fitild.c ildpdf.o $(CLIB)
+	$(CXX) -o $@  -DMAIN fitild.c ildpdf.o $(CLIB) \
+	-L/usr/local/lib -lm -llbfgs -lgsl -lgslcblas
+plotild: plotild.c ildpdf.o $(CLIB)
+	$(CXX) -o plotild plotild.c ildpdf.o $(CLIB) -lm -lgsl -lgslcblas
+
+
+clib.o:		clib.c		stdtype.h
+iolib.o:	iolib.c		stdtype.h
+
+clib.a: clib.o iolib.o  mfile.o sets.o supprime.o calcserv.o
+	$(AR) clib.a clib.o iolib.o  mfile.o sets.o supprime.o calcserv.o
+	$(RANLIB) clib.a
+
+cmn.h:	$(STDH) 
+	touch cmn.h
+seq.h:	$(STDH)
+	touch seq.h
