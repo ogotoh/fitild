@@ -150,5 +150,5 @@ The lines should be numerically sorted on _intron\_length_ in the ascending orde
 
 ## Reference
 
-Gotoh, O. "Modeling one thousand intron length distributions" (in preparation).
+Gotoh, O. "Modeling one thousand intron length distributions with fitild" (in preparation).
 
